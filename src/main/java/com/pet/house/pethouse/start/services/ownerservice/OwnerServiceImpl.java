@@ -2,6 +2,9 @@ package com.pet.house.pethouse.start.services.ownerservice;
 
 import com.pet.house.pethouse.exceptions.OwnerNotExsitsException;
 import com.pet.house.pethouse.exceptions.RoleNotExsists;
+import com.pet.house.pethouse.kafka.EmailService;
+import com.pet.house.pethouse.kafka.KafkaConstrains;
+import com.pet.house.pethouse.kafka.OwnerDto;
 import com.pet.house.pethouse.start.dtos.authentication.LoginRequestDto;
 import com.pet.house.pethouse.start.dtos.authentication.Signup;
 import com.pet.house.pethouse.start.dtos.requestdtos.AddressRequestDto;
@@ -10,6 +13,8 @@ import com.pet.house.pethouse.start.dtos.response.OwnerResponseDto;
 import com.pet.house.pethouse.start.entity.owner_pet.owner.*;
 import com.pet.house.pethouse.start.mappers.AuthenticationMapper;
 import com.pet.house.pethouse.start.repositories.*;
+import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,19 +30,25 @@ private PetRespository petRespository;
 private AddressRepository addressRepository;
 private BCryptPasswordEncoder passwordEncoder;
 private AppointmentRepository appointmentRepository;
+private KafkaTemplate<String, OwnerDto>kafkaTemplate;
+private EmailService emailService;
 private VetRepository vetRepository;
 private RoleRepository roleRepository;
 private HashMap<String,OwnerResponseDto>map=new HashMap<>();
 
-    public OwnerServiceImpl(OwnerRepository ownerRepository, PetRespository petRespository, AddressRepository addressRepository, BCryptPasswordEncoder passwordEncoder,
-                            AppointmentRepository appointmentRepository, VetRepository vetRepository, RoleRepository roleRepository) {
+    public OwnerServiceImpl(OwnerRepository ownerRepository, PetRespository petRespository, AddressRepository addressRepository,
+                            BCryptPasswordEncoder passwordEncoder, AppointmentRepository appointmentRepository, KafkaTemplate<String,
+            OwnerDto> kafkaTemplate, EmailService emailService, VetRepository vetRepository, RoleRepository roleRepository, HashMap<String, OwnerResponseDto> map) {
         this.ownerRepository = ownerRepository;
         this.petRespository = petRespository;
         this.addressRepository = addressRepository;
         this.passwordEncoder = passwordEncoder;
         this.appointmentRepository = appointmentRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.emailService = emailService;
         this.vetRepository = vetRepository;
         this.roleRepository = roleRepository;
+        this.map = map;
     }
 
     @Override
@@ -50,6 +61,7 @@ private HashMap<String,OwnerResponseDto>map=new HashMap<>();
             return map.get(AuthenticationMapper.fromEntity(owner));
         }
         owner.setOwnerName(dto.getOwnerName());
+        owner.setPetName(dto.getPetName());
         owner.setEmail(dto.getOwnerEmail());
         owner.setPhoneNumber(dto.getPhoneNumber());
         owner.setPassword(passwordEncoder.encode(dto.getPassword()));
@@ -82,6 +94,13 @@ private HashMap<String,OwnerResponseDto>map=new HashMap<>();
         map.put("email",AuthenticationMapper.fromEntity(owner));
         ownerRepository.save(owner);
         ownerList.add(owner);
+        OwnerDto ownerDto=new OwnerDto();
+        ownerDto.setEmail(dto.getOwnerEmail());
+        ownerDto.setOwnerName(dto.getOwnerName());
+        ownerDto.setPhoneNumber(dto.getPhoneNumber());
+        String mesasges="THANK YOU FOR CHOOSING US!.. ☻ YOU  SUCCESSFULLY SIGNUP NOW PLEASE LOGIN WITH \n\nhttp://localhost:8080/book/login";
+        String message=emailService.mailSender(ownerDto.getEmail(),ownerDto.getOwnerName(),mesasges);
+        kafkaTemplate.send(KafkaConstrains.Topic,ownerDto);
         return AuthenticationMapper.fromEntity(owner);
     }
 

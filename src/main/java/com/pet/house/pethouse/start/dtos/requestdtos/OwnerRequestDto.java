@@ -14,6 +14,7 @@ public class OwnerRequestDto {
     private String ownerEmail;
     private String password;
     private String phoneNumber;
+    private String petName;
     private List<AddressRequestDto> addressesList;
     private List<PetRequestDto>petRequestDtos;
     private List<AppointmentRequestDto>appointmentsList;

@@ -14,6 +14,7 @@ public class Signup {
     private String ownerEmail;
     private String password;
     private String phoneNumber;
+    private String petName;
     private List<String>roles;
     private List<AddressRequestDto> addressesList;
 }

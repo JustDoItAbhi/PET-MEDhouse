@@ -34,7 +34,7 @@ public class PetServiceImpl implements IPetService{
         pets.setAge(dto.getAge());
         pets.setPetProblems(dto.getPetProblems());
         pets.setPetHistory(dto.getPetHistory());
-        Optional<Owner>exsistingOwner=ownerRepository.findByEmail(dto.getOwnerEmail());
+        Optional<Owner>exsistingOwner=ownerRepository.findByPetName(dto.getPetName());
         if(exsistingOwner.isEmpty()){
             throw new OwnerNotExsitsException("PET IS ABONDENT "+dto.getPetType());
         }

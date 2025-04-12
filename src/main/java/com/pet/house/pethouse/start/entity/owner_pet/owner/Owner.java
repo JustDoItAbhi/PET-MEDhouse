@@ -17,6 +17,7 @@ public class Owner extends BaseModels {
     private String email;
     private String password;
     private String phoneNumber;
+    private String petName;
 
     @ManyToMany
     @JoinTable(name = "Owner_roles",

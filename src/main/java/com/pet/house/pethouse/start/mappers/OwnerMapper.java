@@ -18,6 +18,7 @@ public class OwnerMapper {
         responseDto.setOwnerEmail(owner.getEmail());
         responseDto.setPassword(owner.getPassword());
         responseDto.setOwnerName(owner.getOwnerName());
+        responseDto.setPetName(owner.getPetName());
 
 
         List<AddressResponseDto>addressResponseDtoList=new ArrayList<>();
